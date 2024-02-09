@@ -6,9 +6,9 @@
 -- FROM prescriber
 -- LIMIT 5;
 
-SELECT * 
-FROM prescription
-LIMIT 5;
+-- SELECT * 
+-- FROM prescription
+-- LIMIT 5;
 
 
 -- For this exericse, you'll be working with a database derived from the Medicare Part D Prescriber Public Use File. More information about the data is contained in the Methodology PDF file. See also the included entity-relationship diagram.
@@ -94,8 +94,101 @@ LIMIT 5;
 -- GROUP BY generic_name
 -- ORDER BY 2 DESC;
 
+
+
+
 -- 4
 -- a. For each drug in the drug table, return the drug name and then a column named 'drug_type' which says 'opioid' for drugs which have opioid_drug_flag = 'Y', says 'antibiotic' for those drugs which have antibiotic_drug_flag = 'Y', and says 'neither' for all other drugs.
 
+-- SELECT
+-- drug_name,
+-- CASE WHEN opioid_drug_flag = 'Y' THEN 'opioid'
+-- 	WHEN antibiotic_drug_flag = 'Y' THEN 'antibiotic'
+-- 	ELSE 'neither' END AS drug_type
+-- FROM drug;
 
+-- b. Building off of the query you wrote for part a, determine whether more was spent (total_drug_cost) on opioids or on antibiotics. Hint: Format the total costs as MONEY for easier comparision.
+
+-- SELECT
+-- ROUND(SUM(CASE WHEN opioid_drug_flag = 'Y' THEN (p.total_claim_count*p.total_drug_cost) ELSE '0' END),2) AS opioids,
+-- ROUND(SUM(CASE WHEN antibiotic_drug_flag = 'Y' THEN (p.total_claim_count*p.total_drug_cost) ELSE '0' END),2) AS antibiotics
+-- FROM drug
+-- JOIN prescription AS p
+-- USING (drug_name)
+
+
+-- 5
+-- a. How many CBSAs are in Tennessee? Warning: The cbsa table contains information for all states, not just Tennessee.
+
+-- SELECT 
+-- COUNT(DISTINCT c.cbsa)
+-- FROM cbsa as c 
+-- JOIN fips_county AS fc
+-- USING(fipscounty)
+-- WHERE state = 'TN';
+
+-- b. Which cbsa has the largest combined population? Which has the smallest? Report the CBSA name and total population.
+
+SELECT
+	DISTINCT(c.cbsaname) AS cbsa_name,
+	SUM(pop.population) AS combined_population
+FROM cbsa AS c 
+JOIN fips_county AS fc
+USING(fipscounty)
+JOIN population AS pop
+USING (fipscounty)
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 2;
+
+-- SELECT
+-- 	DISTINCT(c.cbsaname) AS cbsa_name,
+-- 	SUM(pop.population) AS combined_population
+-- FROM cbsa AS c 
+-- JOIN fips_county AS fc
+-- USING(fipscounty)
+-- JOIN population AS pop
+-- USING (fipscounty)
+-- GROUP BY 1
+-- ORDER BY 2 ASC
+-- LIMIT 2;
+
+-- c. What is the largest (in terms of population) county which is not included in a CBSA? Report the county name and population.
+
+SELECT
+	DISTINCT(c.cbsaname) AS cbsa_name,
+	SUM(pop.population) AS combined_population
+FROM cbsa AS c 
+JOIN fips_county AS fc
+USING(fipscounty)
+JOIN population AS pop
+USING (fipscounty)
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 2;
+
+-- 6
+-- a. Find all rows in the prescription table where total_claims is at least 3000. Report the drug_name and the total_claim_count.
+
+-- b. For each instance that you found in part a, add a column that indicates whether the drug is an opioid.
+
+-- c. Add another column to you answer from the previous part which gives the prescriber first and last name associated with each row.
+
+
+
+-- 7.
+-- The goal of this exercise is to generate a full list of all pain management specialists in Nashville and the number of claims they had for each opioid. Hint: The results from all 3 parts will have 637 rows.
+
+-- a. First, create a list of all npi/drug_name combinations for pain management specialists (specialty_description = 'Pain Management) in the city of Nashville (nppes_provider_city = 'NASHVILLE'), where the drug is an opioid (opiod_drug_flag = 'Y'). Warning: Double-check your query before running it. You will only need to use the prescriber and drug tables since you don't need the claims numbers yet.
+
+SELECT
+  pbr.npi,
+  d.drug_name
+FROM prescriber AS pbr
+CROSS JOIN drug AS d
+WHERE specialty_description = 'Pain Management'
+AND
+nppes_provider_city = 'NASHVILLE'
+AND
+d.opioid_drug_flag = 'Y'
 
